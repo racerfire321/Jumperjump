@@ -1,10 +1,10 @@
 // components/GameComponent.js
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState  } from 'react';
 
 
 export default function GameComponent() {
-   
+    
   useEffect(() => {
     
     const canvas = document.querySelector('canvas');
@@ -25,15 +25,43 @@ export default function GameComponent() {
                 y:1
             }
           
-            this.width= 30
-            this.height= 30
+            this.width= 66
+            this.height= 150
+            this.image = createImage('spriteStandRight.png')
+            this.frames = 0
+            this.sprites = {
+                stand : {
+                    right : createImage('spriteStandRight.png'),
+                    left : createImage('spriteStandleft.png'),
+                    cropWidth : 177,
+                    width : 66 
+                },
+                run:{
+                    right : createImage('spriteRunRight.png'),
+                    left : createImage('spriteRunleft.png'),
+                    cropWidth : 341,
+                    width : 127.875
+                }
+            }
+            this.currentSprite = this.sprites.stand.right
+            this.currentCropWidth = 177
         }
     
         draw(){
-            c.fillStyle = 'red'
-            c.fillRect(this.position.x,this.position.y,this.width,this.height)
+            c.drawImage(
+                this.currentSprite,
+                this.currentCropWidth * this.frames,0,
+                this.currentCropWidth,
+                400,
+                this.position.x,
+                this.position.y,
+                this.width,
+                this.height)
         }
         update(){
+            this.frames ++
+            if(this. frames > 59 && (this.currentSprite === this.sprites.stand.right || this.currentSprite === this.sprites.stand.left ) ) this.frames = 0
+            else if (this. frames > 29 && (this.currentSprite === this.sprites.run.right ||this.currentSprite === this.sprites.run.left) )this.frames = 0
             this.draw()
             this.position.x += this.velocity.x 
             this.position.y += this.velocity.y
@@ -82,27 +110,13 @@ export default function GameComponent() {
       }
       
       let platformImage = createImage('platform.png');
+      let platformSmallTall = createImage('platformSmallTall.png')
       
 
     let player = new Player()
-    let platforms = [
-        new Platform({
-        x:-1,
-        y:530,
-        image : platformImage
-    }),new Platform({ 
-        x: platformImage.width - 2,
-        y:530,
-         image: platformImage}),
-         new Platform({ 
-            x: platformImage.width * 2+100,
-            y:530,
-             image: platformImage})
-        ]
+    let platforms = [] 
 
-let genericObjects = [
-   
-]
+let genericObjects = []
 
 
 
@@ -119,30 +133,68 @@ let genericObjects = [
     
     function init(){
          platformImage = createImage('platform.png');
-      
+          
 
          player = new Player()
         platforms = [
+            new Platform({ 
+                x: platformImage.width * 4 + 400 -2 + platformImage.width - platformSmallTall.width,
+                y:335,
+                 image: createImage('platformSmallTall.png')
+                }),
             new Platform({
             x:-1,
-            y:530,
+            y:535,
             image : platformImage
         }),new Platform({ 
             x: platformImage.width - 3,
-            y:530,
+            y:535,
              image: platformImage}),
              new Platform({ 
                 x: platformImage.width * 2 + 150,
-                y:530,
+                y:535,
                  image: platformImage}),
                      new Platform({ 
                         x: platformImage.width * 3 + 400,
-                        y:530,
+                        y:535,
                          image: platformImage}),
                          new Platform({ 
                             x: platformImage.width * 4 + 400 -2,
-                            y:530,
-                             image: platformImage})
+                            y:535,
+                             image: platformImage}),new Platform({ 
+                                x: platformImage.width * 5.2 + 700 -2,
+                                y:535,
+                                 image: platformImage}),
+                                 new Platform({ 
+                                    x: platformImage.width * 6 + 1150 -4 ,
+                                    y:435,
+                                     image: platformImage,
+                                    width : 90,
+                                height : 10}),
+                                new Platform({ 
+                                    x: platformImage.width * 7.3 + 1400 - 3,
+                                    y:535,
+                                     image: platformImage}),
+                                     new Platform({ 
+                                        x: platformImage.width * 8  + 1550 -2 + platformImage.width - platformSmallTall.width,
+                                        y:335,
+                                         image: createImage('platformSmallTall.png')
+                                     }),
+                                         new Platform({ 
+                                            x: platformImage.width * 8  + 2000 -2 + platformImage.width - platformSmallTall.width,
+                                            y:335,
+                                             image: createImage('platformSmallTall.png')}),
+                                             new Platform({ 
+                                                x: platformImage.width * 8  + 2600 -3 + platformImage.width - platformSmallTall.width,
+                                                y:335,
+                                                 image: createImage('platformSmallTall.png'),
+                                         
+                                        }),new Platform({ 
+                                            x: platformImage.width * 9 + 2800 -2,
+                                            y:535,
+                                             image: platformImage})
+
+                                 
             ]
     
      genericObjects = [
@@ -175,7 +227,7 @@ let genericObjects = [
         player.update()
          if(keys.right.pressed && player.position.x < 400){
             player.velocity.x = player.speed
-         } else if(keys.left.pressed && player.position.x > 100){
+         } else if((keys.left.pressed && player.position.x > 100) || keys.left.pressed && scrollOffset === 0 && player.position.x > 0 ){
             player.velocity.x= -player.speed
          } else player.velocity.x = 0
     
@@ -188,7 +240,7 @@ let genericObjects = [
         genericObjects.forEach((genericObject)=>{
             genericObject.position.x -= player.speed * .66
         })
-    }else if (keys.left.pressed){
+    }else if (keys.left.pressed && scrollOffset > 0){
         scrollOffset-=5
         platforms.forEach((platform)=>{
             platform.position.x += player.speed
@@ -203,8 +255,8 @@ let genericObjects = [
             player.velocity.y =0
          }
     })
-    if (scrollOffset > 2000){
-        console.log('you win')
+    if (scrollOffset > platformImage.width * 8  + 2800 -3 + platformImage.width - platformSmallTall.width){
+        console.log('You Win!');
     }
     if (player.position.y >canvas.height){
         init()
@@ -218,6 +270,9 @@ let genericObjects = [
             case 65 :
                 console.log('left')
                 keys.left.pressed = true
+                player.currentSprite = player.sprites.run.left
+                player.currentCropWidth = player.sprites.run.cropWidth
+                player.width = player.sprites.run.width
                 break
                 case 83:
                     console.log("down")
@@ -226,6 +281,9 @@ let genericObjects = [
                 case 68:
                     console.log('right')
                     keys.right.pressed = true
+                    player.currentSprite = player.sprites.run.right
+                    player.currentCropWidth = player.sprites.run.cropWidth
+                    player.width = player.sprites.run.width
                     break
                  case 87 :
                     console.log('up') 
@@ -240,14 +298,20 @@ let genericObjects = [
             case 65 :
                 console.log('left')
                 keys.left.pressed = false
+                player.currentSprite = player.sprites.stand.left
+                    player.currentCropWidth = player.sprites.stand.cropWidth
+                    player.width = player.sprites.stand.width
                 break
                 case 83:
                     console.log("down")
-                    
+                   
                     break
                 case 68:
                     console.log('right')
                     keys.right.pressed = false
+                    player.currentSprite = player.sprites.stand.right
+                    player.currentCropWidth = player.sprites.stand.cropWidth
+                    player.width = player.sprites.stand.width
                     break
                  case 87 :
                     console.log('up') 
@@ -256,12 +320,16 @@ let genericObjects = [
         }
     })
 
+    
+  
 
-  }, []);
+
+}, []);
 
   return (
     <div>
       <canvas></canvas>
+      
     </div>
   );
 }
